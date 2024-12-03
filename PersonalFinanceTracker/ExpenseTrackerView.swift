@@ -5,95 +5,156 @@
 //  Created by Keerthana Ramesh on 12/2/24.
 //
 
+
+
 import SwiftUI
 
 
 struct ExpenseTrackerView: View {
     @State private var expenses: [Expense] = []
-    @State private var budget: Budget? = Budget(month: "December", budgetAmount: 1000)
-    @State private var showAddExpenseView: Bool = false
-    
+    @State private var budgets: [Budget] = [
+        Budget(month: "December", budgetAmount: 500)
+    ] 
+    @State private var showingAddExpenseView = false
+    @State private var showingAddBudgetView = false
+    @State private var newBudgetMonth: String = ""
+    @State private var newBudgetAmount: String = ""
+
     var body: some View {
         NavigationView {
             VStack {
-                // Monthly Budget Overview
-                if let budget = budget {
-                    HStack {
-                        Text("Monthly Budget: \(budget.month)")
-                            .font(.title)
-                            .padding()
-                        
-                        Spacer()
-                        
-                        Text("$\(budget.budgetAmount, specifier: "%.2f")")
-                            .font(.title)
-                            .bold()
-                            .padding()
-                    }
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(10)
-                }
-                
-                // List of Expenses
+                Text("Personal Finance Tracker")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding()
+
+                // Display budgets
                 List {
-                    ForEach(expenses) { expense in
-                        ExpenseRow(expense: expense)
-                    }
-                    .onDelete(perform: deleteExpense)
-                }
-                .listStyle(PlainListStyle())
-                
-                Spacer()
-                
-                // Add Expense Button
-                Button(action: {
-                    showAddExpenseView.toggle()
-                }) {
-                    Text("Add New Expense")
-                        .font(.title2)
+                    ForEach(budgets, id: \.month) { budget in
+                        VStack(alignment: .leading) {
+                            Text("\(budget.month) Budget")
+                                .font(.headline)
+                            Text("$\(budget.budgetAmount, specifier: "%.2f")")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                        }
                         .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .shadow(radius: 10)
+                        .background(RoundedRectangle(cornerRadius: 15).fill(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.7), Color.purple.opacity(0.7)]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+                        .padding()
+                    }
                 }
-                .padding()
-                .sheet(isPresented: $showAddExpenseView) {
+
+                Spacer()
+// Add Expense Button
+                Button(action: {
+                    showingAddExpenseView.toggle()
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                        Text("Add Expense")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.green))
+                    .shadow(radius: 10)
+                }
+                .padding(.bottom)
+                .sheet(isPresented: $showingAddExpenseView) {
                     AddExpenseView(expenses: $expenses)
                 }
+
+                
+                Button(action: {
+                    showingAddBudgetView.toggle()
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.white)
+                        Text("Add Budget")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.blue))
+                    .shadow(radius: 10)
+                }
+                .padding(.bottom)
+                .sheet(isPresented: $showingAddBudgetView) {
+                    VStack {
+                        Text("Create New Budget")
+                            .font(.title)
+                            .fontWeight(.bold)
+
+                        TextField("Enter Month", text: $newBudgetMonth)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+
+                        TextField("Enter Amount", text: $newBudgetAmount)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+
+                        Button(action: {
+                            if let amount = Double(newBudgetAmount), !newBudgetMonth.isEmpty {
+                                let newBudget = Budget(month: newBudgetMonth, budgetAmount: amount)
+                                budgets.append(newBudget)
+                                newBudgetMonth = ""
+                                newBudgetAmount = ""
+                                showingAddBudgetView = false
+                            }
+                        }) {
+                            Text("Save Budget")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .background(Color.green)
+                                .cornerRadius(10)
+                        }
+                        .padding()
+                    }
+                    .padding()
+                }
             }
-            .navigationTitle("Track Expenses")
         }
     }
-    
-    // Delete expense from the list
-    func deleteExpense(at offsets: IndexSet) {
-        expenses.remove(atOffsets: offsets)
-    }
 }
-
-struct ExpenseRow: View {
-    var expense: Expense
     
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(expense.title)
-                    .font(.headline)
-                Text(expense.category)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+    var calendarButton: some View {
+        Button(action: {
+            openCalendarApp()
+        }) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                Text("Open Calendar")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
             }
-            Spacer()
-            Text("$\(expense.amount, specifier: "%.2f")")
-                .bold()
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 15).fill(Color.white))
+            .shadow(radius: 5)
         }
-        .padding(.vertical, 5)
+        .padding(.bottom)
+    }
+    
+    private func openCalendarApp() {
+        if let url = URL(string: "calshow://") {
+            UIApplication.shared.open(url)
+        }
+    }
+
+struct ExpenseTrackerView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExpenseTrackerView()
     }
 }
 
-
-#Preview {
-    ExpenseTrackerView()
-}

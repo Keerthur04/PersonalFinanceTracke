@@ -1,103 +1,118 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var expenses: [Expense] = []
-    @State private var budget: Budget? = Budget(month: "December", budgetAmount: 1000)
-    @State private var showingAddExpenseView = false
-    
     var body: some View {
         NavigationView {
             VStack {
-                // Header with the current budget
+                
                 VStack {
-                    Text("Personal Finance Tracker")
+                    Text("Welcome to the Finance Tracker")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .padding()
+                        .foregroundColor(.primary)
+                        .padding(.top, 40)
                     
-                    if let budget = budget {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Monthly Budget")
-                                    .font(.headline)
-                                Text("$\(budget.budgetAmount, specifier: "%.2f")")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                            }
-                            .padding()
-                            
-                            Spacer()
-                            
-                            Image(systemName: "creditcard.fill")
-                                .resizable()
-                                .frame(width: 40, height: 40)
-                                .foregroundColor(.green)
-                        }
-                        .background(RoundedRectangle(cornerRadius: 15).fill(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.7), Color.purple.opacity(0.7)]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+                    Text("Track your monthly expenses and stay within your budget.")
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 30)
+                }
+
+                
+                NavigationLink(destination: ExpenseTrackerView()) {
+                    Text("Go to Expense Tracker")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
                         .padding()
-                    }
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .cornerRadius(15)
+                        .shadow(radius: 10)
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
                 }
                 
-                // List of expenses
-                List {
-                    ForEach(expenses) { expense in
-                        HStack {
-                            Image(systemName: expense.categoryIcon)
-                                .foregroundColor(.blue)
-                            
-                            VStack(alignment: .leading) {
-                                Text(expense.title)
-                                    .font(.headline)
-                                Text("$\(expense.amount, specifier: "%.2f")")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-                            
-                            Spacer()
-                            
-                            Text(expense.date, style: .date)
-                                .font(.footnote)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-                    }
-                }
-                .listStyle(PlainListStyle())
                 
-                Spacer()
-                
-                // Add Expense Button
-                Button(action: {
-                    showingAddExpenseView.toggle()
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.white)
-                        Text("Add Expense")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                    }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.green))
-                    .shadow(radius: 10)
+                HStack {
+                    
+                    calendarButton
+                    
+                    homeButton
                 }
-                .padding(.bottom)
-                .sheet(isPresented: $showingAddExpenseView) {
-                    AddExpenseView(expenses: $expenses)
-                }
+                .padding(.bottom, 30)
             }
-            .navigationBarHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Home")
+            .padding(.horizontal)
+            .background(Color.white) //
+            .cornerRadius(15)
+            .shadow(radius: 10)
+        }
+    }
+
+    
+    var homeButton: some View {
+        Button(action: {
+            
+            print("Home tapped")
+        }) {
+            HStack {
+                Image(systemName: "house.fill")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                Text("Home")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(15)
+            .shadow(radius: 5)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    // Calendar Button
+    var calendarButton: some View {
+        Button(action: {
+            openCalendarApp() 
+        }) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                Text("Open Calendar")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.white)
+            .cornerRadius(15)
+            .shadow(radius: 5)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private func openCalendarApp() {
+        if let url = URL(string: "calshow://") {
+            UIApplication.shared.open(url)
         }
     }
 }
 
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .preferredColorScheme(.light)
     }
 }
 
